@@ -5,7 +5,13 @@
 #define PRINT_VEC(vec)      \
     vec.print(#vec)
 
+#define _CRT_SECURE_NO_WARNINGS
 /* Includes */
+
+#include "C:\codeblocks\CodeBlocks\TXlib\TX\TXLib.h"
+#if !defined (_TX_VER) || (_TX_VER < 0x172a0000)
+#error Must use TXLib.h version >= 1.72 to compile this.
+#endif
 
 #include <cmath>
 #include <stdio.h>
@@ -23,15 +29,20 @@ public:
     /* Operators */
     friend Vector  operator + (const Vector &v1, const Vector &v2);
     friend Vector  operator - (const Vector &v1, const Vector &v2);
+
     friend Vector  operator * (const Vector &v, double k);
-    friend Vector  operator * (double k, const Vector &v);
+    friend Vector  operator * (double k, const Vector& v);
+    friend Vector  operator * (const Vector& v1, const Vector& v2);
+
     friend Vector  operator / (const Vector& v, double value);
     friend Vector  operator ^ (const Vector& v1, const Vector& v2);
     friend Vector& operator += (Vector& a, const Vector& b);
 
+    friend double  sc_dot(const Vector& v1, const Vector& v2);
+
 
     double dot(const Vector &v);
-    void normalize();
+    Vector normalize();
 
     Vector transformMatrixToVector(const double m[16]);
 
@@ -46,11 +57,13 @@ public:
     void set(double x, double y, double z);
     void print(const char* = nullptr);
 
-
-private:
     double x_;
     double y_;
     double z_;
+
+private:
+
 };
+
 
 #endif

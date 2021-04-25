@@ -1,5 +1,6 @@
 #include "vector.h"
 
+
 Vector::Vector() : x_(0.0f), y_(0.0f), z_(0.0f)
 {
 }
@@ -27,9 +28,15 @@ Vector operator*(const Vector &v, double k)
     return Vector(v.x_ * k, v.y_ * k, v.z_ * k);
 }
 
-Vector operator*(double k, const Vector &v)
+
+Vector operator*(double k, const Vector& v)
 {
-    return Vector(v.x_ * k, v.y_ * k, v.z_ * k);
+    return v * k;
+}
+
+Vector operator*(const Vector& v1, const Vector& v2)
+{
+    return Vector(v1.x_ * v2.x_, v1.y_ * v2.y_, v1.z_ * v2.z_);
 }
 
 Vector operator^(const Vector& v1, const Vector& v2)
@@ -37,6 +44,11 @@ Vector operator^(const Vector& v1, const Vector& v2)
     return Vector(v1.y_ * v2.z_ - v1.z_ * v2.y_,
                   v1.z_ * v2.x_ - v1.x_ * v2.z_,
                   v1.x_ * v2.y_ - v1.y_ * v2.x_);
+}
+
+double sc_dot (const Vector& v1, const Vector& v2)
+{
+    return v1.x_ * v2.x_ + v1.y_ * v2.y_ + v1.z_ * v2.z_;
 }
 
 Vector& operator+=(Vector& v1, const Vector& v2)
@@ -57,15 +69,17 @@ double Vector::dot(const Vector &v)
     return x_ * v.x_ + y_ * v.y_ + z_ * v.z_;
 }
 
-void Vector::normalize()
+Vector Vector::normalize()
 {
     double len = sqrt(x_ * x_ + y_ * y_ + z_ * z_);
     if (len != 0)
     {
-        x_ /= len;
+        x_ /= len;  
         y_ /= len;
         z_ /= len;
     }
+
+    return *this;
 }
 
 Vector Vector::transformMatrixToVector(const double m[16])
