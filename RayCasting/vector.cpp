@@ -31,7 +31,7 @@ Vector operator*(const Vector &v, double k)
 
 Vector operator*(double k, const Vector& v)
 {
-    return v * k;
+    return Vector(v.x_ * k, v.y_ * k, v.z_ * k);
 }
 
 Vector operator*(const Vector& v1, const Vector& v2)

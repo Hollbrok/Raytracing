@@ -3,6 +3,8 @@
 
 using namespace sf;
 
+const bool MOVE = false;
+
 #define SC_Width 640
 #define SC_Height 480
 #define BG_COLOR Color::Blue
@@ -13,13 +15,13 @@ using namespace sf;
 #define SP_COLOR Color::Red
 
 // ÷вет материала сферы
-#define MATER_COLOR 0.0, 1.0, 0.0
+#define MATER_COLOR 1.0, 1.0, 0.0
 
 // ÷вет источника
-#define LIGHT_COLOR 1.0, 0.7, 0.0
+#define LIGHT_COLOR 0.0, 0.2, 0.5
 
 // ќкружающий цвет
-#define AMBIENT_COLOR 0.2, 0.2, 0.2
+#define AMBIENT_COLOR 0.0, 0.0, 0.0
 
 #define ALL_VECTORS viewPos, materialColor, lightColor, ambientColor
 
@@ -62,6 +64,8 @@ int main()
 	std::chrono::high_resolution_clock::time_point end;
 	float fps;
 
+	double pi = std::acos(-1);
+	double light_move = pi / 2;
 	while (window.isOpen())
 	{
 		Event event;
@@ -77,13 +81,18 @@ int main()
 		for (int x = 0; x < SC_Width; x++)
 			for (int y = 0; y < SC_Height; y++)
 			{
-				if (pow(x - SP_X_CENTRE + SP_RAD, 2) + pow(y - SP_Y_CENTRE + SP_RAD, 2) > pow(SP_RAD, 2))
+				if (pow(x - SC_Width / 2, 2) + pow(y - SC_Height / 2, 2) > pow(SP_RAD, 2))
 					continue;
-
-				Vector color = get_true_color(x, y, ALL_VECTORS);
-				//Color color();
 				
-				buffer.setPixel(x, y, Color(color.x_, color.y_, color.z_));//Color(randomgen(0, 255), randomgen(0, 255), randomgen(0, 255)));
+				Vector color = get_true_color(x - SC_Width / 2, y - SC_Height / 2, ALL_VECTORS, Vector( - 2 * SP_RAD * (1 + cos(light_move)),
+																		 - 2 * SP_RAD * cos(light_move),
+																		 + 2 * SP_RAD * sin(light_move) ), SP_RAD
+											);
+				
+				//Color color(randomgen(0, 255), randomgen(0, 255), randomgen(0, 255));
+				
+				buffer.setPixel(x, y, Color(255 * color.x_, 255 * color.y_, 255 * color.z_));//Color(randomgen(0, 255), randomgen(0, 255), randomgen(0, 255)));
+				//buffer.setPixel(x, y, Color(randomgen(0, 255), randomgen(0, 255), randomgen(0, 255)));
 			}
 		texture.loadFromImage(buffer);
 		window.draw(sprite);
@@ -96,7 +105,9 @@ int main()
 		const std::string title = "Shooter simulator (" + std::to_string((int)fps) + " fps)";
 
 		window.setTitle(title);
-	
+
+		if(MOVE)
+			light_move += 0.1;
 	}	
 
 	return 0;
