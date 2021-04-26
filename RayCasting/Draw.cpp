@@ -1,43 +1,49 @@
 #include "vector.h"
 #include "draw.h"
 
+constexpr auto ABSORPTION = 2;
+constexpr auto POW = 25;
+
 int randomgen(int min, int max)
 {
     return rand() % (max - min + 1) + min;
 }
 
 
-Vector get_true_color(int x, int y, const Vector viewPos, const Vector materialColor, const Vector lightColor, const Vector ambientColor, const Vector lightPosition, int R)
+Vector get_true_color(int x, int y, const Vector viewPos, const Vector materialColor, const Vector lightColor, const Vector ambientColor,
+						const Vector lightPosition, int R, int smooth)
 {
-	//printf("x = %d, y = %d\n", x, y);
 	Vector p(x, y, 0);
-	p = p + Bump(p, R) * 100;
-	//PRINT_VEC(p);
+	p = p + Bump(p, R, smooth) * 100;
+	
 	if (p.x_ * p.x_ + p.y_ * p.y_ > R * R)
-		printf("BADDDDDD\n"); //{ DrawPixel(x, y, Vector()); continue; }
-	//printf("R^2 - ... = %lg\n", R * R - p.x_ * p.x_ - p.y_ * p.y_);
+		return Vector(0, 0, 0);
+
 	p.z_ = sqrt(R * R - p.x_ * p.x_ - p.y_ * p.y_);
-	//PRINT_VEC(p);
+
+
+	// N -- единичные вектор нормали в точке
+	Vector N = p.normalize() + Bump(p, R, smooth);
 	
-	Vector N = p.normalize() + Bump(p, R);
-	//PRINT_VEC(N);
 
-
+	// V -- единичный вектор направления на камеру (наблюдателя)
 	Vector V = (viewPos - p).normalize();
-	//PRINT_VEC(V);
 	
+	// L -- единичный вектор направления на источник света
 	Vector L = (lightPosition - p).normalize();
-	//PRINT_VEC(L);
+	
 
 	double diffuse = N.dot(L);
 	if (diffuse < 0) diffuse = 0;
 
-	Vector Lr = 2 * (N.dot(L)) * N - L;
-	//PRINT_VEC(Lr);
+	// Lr -- Так как (Lr + L) = 2N.dot(L) * N (т.к. вектор, коллинеарный N, а по длине равный 2N.dot(L) ) 
+	Vector Lr = ABSORPTION * (N.dot(L)) * N - L;
 	
+	
+	// угол между Lr и V
 	double spec = Lr.dot(V);
 	if (spec < 0) spec = 0;
-	double specular = pow(spec, 25);
+	double specular = pow(spec, POW); // 25
 
 
 	Vector color = ambientColor * materialColor;
@@ -58,9 +64,9 @@ Vector get_true_color(int x, int y, const Vector viewPos, const Vector materialC
     //return Vector(randomgen(0, 255), randomgen(0, 255), randomgen(0, 255));
 }
 
-Vector PhongLightning(const Vector& p, const Vector& N, const Vector& V,
-					  const Vector& lightPos, const Vector& lightColor,
-					  const Vector& materialColor, const Vector& ambientColor)
+Vector PhongLightning(const Vector& p,				const Vector& N,		 const Vector& V,
+					  const Vector& lightPos,		const Vector& lightColor,
+					  const Vector& materialColor,	const Vector& ambientColor)
 {
 	Vector L = (lightPos - p).normalize();
 
@@ -68,13 +74,13 @@ Vector PhongLightning(const Vector& p, const Vector& N, const Vector& V,
 	if (diffuse < 0) return ambientColor;
 
 	Vector Lr = 2 * diffuse * N - L;
-	double specular = pow(Lr.dot(V), 25);
+	double specular = pow(Lr.dot(V), POW);
 
 	return diffuse * lightColor * materialColor +
 		specular * lightColor + ambientColor;
 }
 
-Vector Bump(const Vector& p, double r)
+Vector Bump(const Vector& p, double r, int smooth)
 {
 	/*bool bXY	= (GetAsyncKeyState('X') != 0),
 		 bXY2	= (GetAsyncKeyState('H') != 0),
@@ -104,5 +110,48 @@ Vector Bump(const Vector& p, double r)
 
 	return bump;*/
 
+	Vector bump(0, 0, 0);
+	const int sz = 100;
+	static Vector env[sz][sz] = {};
+
+	static bool init = false;
+//#define GET_RAND() randomgen( -1, 1 )
+
+
+	//int smooth = 9; // from 0 to 10
+
+	if (smooth == 10)
+		return Vector(0, 0, 0);
+	else	
+	{
+		#define GET_RAND() randomgen( -1, 1 )
+		#define GET_SMOOTH() randomgen(-smooth, smooth)
+		#define RAND() (GET_RAND() * 10 * (10 - GET_SMOOTH())) / 100
+		#define RAND_SMOOTH() randomgen( -1, 1 )
+		
+		if (!init)
+		{
+			for (int y = 0; y < sz; y++) for (int x = 0; x < sz; x++)
+				env[y][x] = Vector(RAND(), RAND(), RAND());
+
+			init = true;
+		}
+	}
+		
+
+	#undef GET_RAND()
+	#undef GET_SMOOTH()
+	#undef RAND()
+	#undef RAND_SMOOTH()
+
+	
+
+	bump += env[(unsigned)(int)(p.y_ + r) % sz][(unsigned)(int)(p.x_ + r) % sz] / 100.0;
+
+
+
+	return bump;
+
 	return Vector(0, 0, 0);
+
 }

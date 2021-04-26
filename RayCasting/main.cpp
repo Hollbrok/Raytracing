@@ -3,7 +3,10 @@
 
 using namespace sf;
 
-const bool MOVE = false;
+const int SPEED = 50;
+const bool MOVE = true;
+int SMOOTH = 10;
+
 
 #define SC_Width 640
 #define SC_Height 480
@@ -15,18 +18,15 @@ const bool MOVE = false;
 #define SP_COLOR Color::Red
 
 // Цвет материала сферы
-#define MATER_COLOR 1.0, 1.0, 0.0
+#define MATER_COLOR 0.1, 0.1, 0.1
 
 // Цвет источника
-#define LIGHT_COLOR 0.0, 0.2, 0.5
+#define LIGHT_COLOR 0.3, 0.8 , 0.3
 
 // Окружающий цвет
-#define AMBIENT_COLOR 0.0, 0.0, 0.0
+#define AMBIENT_COLOR 1.0, 0.2, 0.3
 
 #define ALL_VECTORS viewPos, materialColor, lightColor, ambientColor
-
-// Vector color будет с значениями от 0 до 1
-// Нужно как по сделать буффер размера [SC_Width][SC_Heigh] и есть в окрестности сферы входит, то рассчитать по формуле цвет
 
 int main()
 {
@@ -43,7 +43,7 @@ int main()
 	sphere.setPosition(SP_X_CENTRE, SP_Y_CENTRE);
 
 
-	const Vector viewPos(0, 0, (double)(+5) * (double)SP_RAD);
+	Vector viewPos(0, 0, (double)(+5) * (double)SP_RAD);
 
 	const Vector materialColor(MATER_COLOR);
 	const Vector lightColor(LIGHT_COLOR);
@@ -73,6 +73,40 @@ int main()
 		{
 			if (event.type == sf::Event::Closed || (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape))
 				window.close();
+			
+			if (Keyboard::isKeyPressed)
+			{
+
+				switch (event.key.code)
+				{
+					case Keyboard::Left:
+						if (-viewPos.x_ + SPEED > SC_Width)
+							viewPos.x_ = SC_Width - (-viewPos.x_ + SPEED - SC_Width);
+						else 
+							viewPos.x_ -= SPEED;
+						break;
+					case Keyboard::Right:
+						if (viewPos.x_ + SPEED > SC_Width)
+							viewPos.x_ = -SC_Width + (viewPos.x_ + SPEED - SC_Width);
+						else
+							viewPos.x_ += SPEED;
+						break;
+					case Keyboard::Down:
+						if (viewPos.y_ + SPEED > SC_Width)
+							viewPos.y_ = -SC_Width + (viewPos.y_ + SPEED - SC_Width);
+						else
+							viewPos.y_ += SPEED;
+						break;
+					case Keyboard::Up:
+						if (-viewPos.y_ + SPEED > SC_Width)
+							viewPos.y_ = SC_Width - (-viewPos.y_ + SPEED - SC_Width);
+						else
+							viewPos.y_ -= SPEED;
+						break;
+				}			
+				//PRINT_VEC(viewPos);
+			}
+		
 		}
 		start = std::chrono::high_resolution_clock::now();
 		window.clear(BG_COLOR);
@@ -83,17 +117,17 @@ int main()
 			{
 				if (pow(x - SC_Width / 2, 2) + pow(y - SC_Height / 2, 2) > pow(SP_RAD, 2))
 					continue;
-				
-				Vector color = get_true_color(x - SC_Width / 2, y - SC_Height / 2, ALL_VECTORS, Vector( - 2 * SP_RAD * (1 + cos(light_move)),
-																		 - 2 * SP_RAD * cos(light_move),
-																		 + 2 * SP_RAD * sin(light_move) ), SP_RAD
+
+				Vector lightPosition = Vector(SP_RAD * cos(light_move), /*SP_RAD * pow(cos(light_move), 2)*/ 0, SP_RAD * sin(light_move));
+				Vector color = get_true_color(x - SC_Width / 2, y - SC_Height / 2, ALL_VECTORS, 
+											  lightPosition, SP_RAD, SMOOTH
 											);
-				
-				//Color color(randomgen(0, 255), randomgen(0, 255), randomgen(0, 255));
-				
-				buffer.setPixel(x, y, Color(255 * color.x_, 255 * color.y_, 255 * color.z_));//Color(randomgen(0, 255), randomgen(0, 255), randomgen(0, 255)));
-				//buffer.setPixel(x, y, Color(randomgen(0, 255), randomgen(0, 255), randomgen(0, 255)));
+					/*Vector( - 2 * SP_RAD * (1 + cos(light_move)),
+																		 - 2 * SP_RAD * cos(light_move),
+																		 + 2 * SP_RAD * sin(light_move) )*/
+				buffer.setPixel(x, y, Color(255 * color.x_, 255 * color.y_, 255 * color.z_));
 			}
+
 		texture.loadFromImage(buffer);
 		window.draw(sprite);
 
@@ -102,7 +136,7 @@ int main()
 
 		fps = (float)1e9 / (float)std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
 		
-		const std::string title = "Shooter simulator (" + std::to_string((int)fps) + " fps)";
+		const std::string title = "Raycasting (" + std::to_string((int)fps) + " fps)";
 
 		window.setTitle(title);
 
