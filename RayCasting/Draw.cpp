@@ -2,7 +2,7 @@
 #include "draw.h"
 
 constexpr auto ABSORPTION = 2;
-constexpr auto POW = 25;
+constexpr auto POW = 35;
 
 int randomgen(int min, int max)
 {
@@ -46,7 +46,7 @@ Vector get_true_color(int x, int y, const Vector viewPos, const Vector materialC
 	double specular = pow(spec, POW); // 25
 
 
-	Vector color = ambientColor * materialColor;
+	Vector color = ambientColor * materialColor * (randomgen(-1, 1) / 10);//(sc_dot(materialColor, Vector(1000,1000 * R,0)));
 	//PRINT_VEC(color);
 
 	color += diffuse * materialColor * lightColor;

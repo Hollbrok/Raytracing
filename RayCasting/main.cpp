@@ -1,10 +1,11 @@
 #include "vector.h"
 #include "draw.h"
+#include "Button.h"
 
 using namespace sf;
 
 const int SPEED = 50;
-const bool MOVE = true;
+bool MOVE = 1;
 int SMOOTH = 10;
 
 
@@ -18,15 +19,84 @@ int SMOOTH = 10;
 #define SP_COLOR Color::Red
 
 // ÷вет материала сферы
-#define MATER_COLOR 0.1, 0.1, 0.1
+#define MATER_COLOR 0.4, 0.1, 0.2
 
 // ÷вет источника
-#define LIGHT_COLOR 0.3, 0.8 , 0.3
+#define LIGHT_COLOR 0.5, 0.3 , 0.5
 
 // ќкружающий цвет
-#define AMBIENT_COLOR 1.0, 0.2, 0.3
+#define AMBIENT_COLOR 0.5, 0.5, 0.5
 
 #define ALL_VECTORS viewPos, materialColor, lightColor, ambientColor
+
+int example()
+{
+
+	RenderWindow window(sf::VideoMode(920, 700), "My window");
+
+	Button a(640, 480, "PRESSED ME");
+	//a.setOringCenter();
+	a.setFillRacktengelColor(255, 255, 255);
+	a.setFillTextColor(0, 255, 90);
+	a.setPosition(0, 0);
+
+	Clock clock;
+
+	while (window.isOpen())
+	{
+
+		Vector2i mouse = Mouse::getPosition(window);
+		Vector2f mousePositon = window.mapPixelToCoords(mouse);//переводим их в игровые (уходим от коорд окна)
+
+
+		float time = clock.getElapsedTime().asSeconds();
+
+		//clock.restart();
+
+		//time = time / 800;
+
+
+
+		Event event;
+		while (window.pollEvent(event))
+		{
+
+			if (event.type == sf::Event::Closed)
+				window.close();
+		}
+
+		window.clear(Color(0, 0, 0));
+
+
+		if (a.navediaMouse(event, mousePositon)) 
+		{
+			a.setFillRacktengelColor(255, 0, 0);
+		}
+		else
+		{
+			a.setFillRacktengelColor(255, 255, 255);
+		}
+
+
+
+		if (a.pressed(event, mousePositon)) {
+
+			cout << "PRESSED" << endl;
+
+
+		}
+
+
+		a.draw(window);
+		//a.setButtonSize(640, 480);
+
+
+		window.display();
+	}
+
+	return 0;
+}
+
 
 int main()
 {
@@ -49,6 +119,12 @@ int main()
 	const Vector lightColor(LIGHT_COLOR);
 	const Vector ambientColor(AMBIENT_COLOR);
 
+	Button movement(40, 25, "OFF");
+	movement.setFillRacktengelColor(155, 40, 50);
+	movement.setFillTextColor(20, 155, 255);
+	movement.setPosition(10, 10);
+	movement.SetTxtPos(100, 100);
+
 	/* creating image */
 	Image buffer;
 	buffer.create(SC_Width, SC_Height);
@@ -62,12 +138,21 @@ int main()
 
 	std::chrono::high_resolution_clock::time_point start;
 	std::chrono::high_resolution_clock::time_point end;
+	std::chrono::high_resolution_clock::time_point last_click;
+
 	float fps;
 
 	double pi = std::acos(-1);
 	double light_move = pi / 2;
+
+	Vector2i mouse = Mouse::getPosition(window);
+	Vector2f mousePositon = window.mapPixelToCoords(mouse);//переводим их в игровые (уходим от коорд окна)
+
 	while (window.isOpen())
 	{
+		mouse = Mouse::getPosition(window);
+		mousePositon = window.mapPixelToCoords(mouse);//переводим их в игровые (уходим от коорд окна)
+
 		Event event;
 		while (window.pollEvent(event))
 		{
@@ -80,34 +165,64 @@ int main()
 				switch (event.key.code)
 				{
 					case Keyboard::Left:
-						if (-viewPos.x_ + SPEED > SC_Width)
+						if (-viewPos.x_ + SPEED > SC_Width + 50)
 							viewPos.x_ = SC_Width - (-viewPos.x_ + SPEED - SC_Width);
 						else 
 							viewPos.x_ -= SPEED;
 						break;
 					case Keyboard::Right:
-						if (viewPos.x_ + SPEED > SC_Width)
+						if (viewPos.x_ + SPEED > SC_Width + 50)
 							viewPos.x_ = -SC_Width + (viewPos.x_ + SPEED - SC_Width);
 						else
 							viewPos.x_ += SPEED;
 						break;
 					case Keyboard::Down:
-						if (viewPos.y_ + SPEED > SC_Width)
-							viewPos.y_ = -SC_Width + (viewPos.y_ + SPEED - SC_Width);
+						if (viewPos.y_ + SPEED > SC_Height + 50)
+							viewPos.y_ = -SC_Height + (viewPos.y_ + SPEED - SC_Width);
 						else
 							viewPos.y_ += SPEED;
 						break;
 					case Keyboard::Up:
-						if (-viewPos.y_ + SPEED > SC_Width)
-							viewPos.y_ = SC_Width - (-viewPos.y_ + SPEED - SC_Width);
+						if (-viewPos.y_ + SPEED > SC_Height + 50)
+							viewPos.y_ = SC_Height - (-viewPos.y_ + SPEED - SC_Width);
 						else
 							viewPos.y_ -= SPEED;
 						break;
 				}			
-				//PRINT_VEC(viewPos);
 			}
 		
 		}
+
+		if (movement.navediaMouse(event, mousePositon))
+		{
+			movement.changeFillRacktengelColor(255, 255, 0);
+			if (Mouse::isButtonPressed(Mouse::Left))
+			{
+				end = std::chrono::high_resolution_clock::now();
+				if ( ((std::chrono::duration_cast<std::chrono::milliseconds>(end - last_click).count()) < 70) );
+				else if (MOVE)
+				{
+					MOVE = false;
+					movement.changeTxt("ON");
+				}
+				else
+				{
+					MOVE = true;
+					movement.changeTxt("OFF");
+				}
+
+				last_click = std::chrono::high_resolution_clock::now();
+			}
+
+		}
+		else
+			movement.changeFillRacktengelColor(movement.GetColor());
+
+
+
+		if (movement.pressed(event, mousePositon))
+			cout << "PRESSED" << endl;
+
 		start = std::chrono::high_resolution_clock::now();
 		window.clear(BG_COLOR);
 
@@ -130,6 +245,7 @@ int main()
 
 		texture.loadFromImage(buffer);
 		window.draw(sprite);
+		movement.draw(window);
 
 		window.display();
 		end = std::chrono::high_resolution_clock::now();
