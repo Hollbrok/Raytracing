@@ -2,6 +2,8 @@
 
 //#include "C:\codeblocks\CodeBlocks\TXlib\TX\TXLib.h"
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
+
 #include <cmath>
 #include <stdio.h>
 #include <limits>
@@ -11,4 +13,4 @@
 #include <chrono>
 #include <ratio>
 #include <thread>
-
+#include <string>
