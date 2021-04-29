@@ -5,7 +5,10 @@
 using namespace sf;
 
 const int SPEED = 100;
-bool MOVE = 1;
+
+bool MOVE = true;
+bool NEED_MORGEN = false;
+
 int AUTO_SPEED = 1;
 int SMOOTH = 10;
 
@@ -20,7 +23,7 @@ int SMOOTH = 10;
 #define SP_COLOR Color::Red
 
 // ÷вет материала сферы
-#define MATER_COLOR 1.0, 0.0, 0.0
+#define MATER_COLOR 0.96, 0.938, 0.03
 
 // ÷вет источника
 #define LIGHT_COLOR 0.2, 0.2, 0.6
@@ -33,7 +36,7 @@ int SMOOTH = 10;
 #define ALL_VECTORS viewPos, materialColor, lightColor, ambientColor
 
 constexpr auto ABSORPTION = 2;
-constexpr auto POW = 10;
+constexpr auto POW = 25;
 
 void RayCasting()
 {
@@ -51,7 +54,7 @@ void RayCasting()
 
 	Vector viewPos(0, 0, (double)(+5) * (double)SP_RAD);
 
-	const Vector materialColor(MATER_COLOR);
+	Vector materialColor(MATER_COLOR);
 	const Vector lightColor(LIGHT_COLOR);
 	Vector ambientColor(AMBIENT_COLOR);
 	const Vector ambientPosition(AMBIENT_POSITION);
@@ -86,6 +89,12 @@ void RayCasting()
 	red_speed.setPosition(20, 115);
 	red_speed.SetTxtPos(100, 100);
 
+	Button morgen(100, 20, "MORGEN ON");
+	morgen.setFillRacktengelColor(155, 40, 50);
+	morgen.setFillTextColor(20, 255, 155);
+	morgen.setPosition(500, 80);
+	morgen.SetTxtPos(100, 100);
+
 
 	/* creating image */
 	Image buffer;
@@ -119,6 +128,14 @@ void RayCasting()
 	Sound sound;
 	sound.setBuffer(SoundBuf);
 	sound.play();
+
+	sf::Image Sphere;
+	sf::Color matColor;
+
+	if (!Sphere.loadFromFile("morgen.jpg"))
+	{
+		printf("Can't open file sphere.jpg\n");
+	}
 
 	while (window.isOpen())
 	{
@@ -292,28 +309,63 @@ void RayCasting()
 		else
 			red_speed.changeFillRacktengelColor(red_speed.GetColor());
 
+		if (morgen.navediaMouse(event, mousePositon))
+		{
+			morgen.changeFillRacktengelColor(255, 255, 0);
+			if (Mouse::isButtonPressed(Mouse::Left))
+			{
+				end = std::chrono::high_resolution_clock::now();
+				if (((std::chrono::duration_cast<std::chrono::milliseconds>(end - last_click).count()) < 70));
+				else if (NEED_MORGEN == true)
+				{
+					NEED_MORGEN = false;
+					morgen.changeTxt("MORGEN OFF");
+				}
+				else
+				{
+					NEED_MORGEN = true;
+					morgen.changeTxt("MORGEN ON");
+				}
+
+				last_click = std::chrono::high_resolution_clock::now();
+			}
+
+		}
+		else
+			morgen.changeFillRacktengelColor(red_speed.GetColor());
+
 
 
 		if (movement.pressed(event, mousePositon))
 		{
 			//	cout << "PRESSED" << endl;
 		}
+
 		start = std::chrono::high_resolution_clock::now();
 		window.clear(BG_COLOR);
 
 		// CHANGE buffer, then
+		
+
 		for (int x = 0; x < SC_Width; x++)
 			for (int y = 0; y < SC_Height; y++)
 			{
 				if (pow(x - SC_Width / 2, 2) + pow(y - SC_Height / 2, 2) > pow(SP_RAD, 2))
 					continue;
 
-				lightPosition = Vector(SP_RAD * cos(light_move), /*SP_RAD * pow(cos(light_move), 2)*/ 0, SP_RAD * sin(light_move));
+				if (NEED_MORGEN)
+				{
+					matColor = Sphere.getPixel(x, y);
+					materialColor = Vector(matColor.r / 256.f, matColor.g / 256.f, matColor.b / 256.f);
+				}
+
+				lightPosition = Vector(SP_RAD * cos(light_move), SP_RAD * pow(cos(light_move), 2), SP_RAD * sin(light_move));
 				color = get_true_color(x - SC_Width / 2, y - SC_Height / 2, ALL_VECTORS,
-					lightPosition, SP_RAD, SMOOTH, ambientPosition
-				);
+									   lightPosition, SP_RAD, SMOOTH, ambientPosition
+										);
 				buffer.setPixel(x, y, Color(255 * color.x_, 255 * color.y_, 255 * color.z_));
 			}
+		
 
 		texture.loadFromImage(buffer);
 		window.draw(sprite);
@@ -323,6 +375,7 @@ void RayCasting()
 		ambient.draw(window);
 		inc_speed.draw(window);
 		red_speed.draw(window);
+		morgen.draw(window);
 
 
 		window.display();
@@ -330,7 +383,7 @@ void RayCasting()
 
 		fps = (float)1e9 / (float)std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
 
-		const std::string title = "Raycasting (" + std::to_string((int)fps) + " fps)";
+		const std::string title = "Raycasting (" + std::to_string((double)fps) + " fps)";
 
 		window.setTitle(title);
 

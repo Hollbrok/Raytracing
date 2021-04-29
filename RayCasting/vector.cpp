@@ -7,6 +7,7 @@ Vector::Vector() : x_(0.0f), y_(0.0f), z_(0.0f)
 
 Vector::Vector(double x, double y, double z) : x_(x), y_(y), z_(z)
 {
+   // printf("x_ = %lg, y_ = %lg, z_ = %lg\n", x_, y_, z_);
 }
 
 Vector::~Vector()

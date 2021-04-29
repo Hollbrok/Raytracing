@@ -130,7 +130,7 @@ public:
 	}
 
 	//рисуеи и кнопк(квадрат) и текст
-	void draw(RenderWindow& window)override {
+	void draw(RenderWindow& window) override {
 
 		txt.setPosition(button.getPosition());
 		// ЗДЕСЬ МОЖНО ВЫРАВНИВАТЬ
