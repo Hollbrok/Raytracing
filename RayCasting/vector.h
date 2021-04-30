@@ -18,6 +18,7 @@ class Vector
 public:
     Vector();
     Vector(double x, double y, double z);
+    Vector(double t);
     ~Vector();
 
     /* Operators */

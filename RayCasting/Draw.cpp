@@ -8,8 +8,12 @@ const int SPEED = 100;
 
 bool MOVE = true;
 bool NEED_MORGEN = false;
+bool GLOSSY = false;
+//bool
 
-int AUTO_SPEED = 1;
+bool NEED_MENU = false;
+
+int AUTO_SPEED = 2;
 int SMOOTH = 10;
 
 
@@ -23,13 +27,13 @@ int SMOOTH = 10;
 #define SP_COLOR Color::Red
 
 // Цвет материала сферы
-#define MATER_COLOR 0.96, 0.938, 0.03
+#define MATER_COLOR 1, 0.0, 0.0
 
 // Цвет источника
-#define LIGHT_COLOR 0.2, 0.2, 0.6
+#define LIGHT_COLOR 0.0, 0.6, 0.1
 
 // Окружающий цвет
-#define AMBIENT_COLOR 0.0, 0.3, 0.3
+#define AMBIENT_COLOR 0.2, 0.2, 0.2
 
 #define AMBIENT_POSITION -2 * SP_RAD, -SP_RAD, 0
 
@@ -57,7 +61,13 @@ void RayCasting()
 	Vector materialColor(MATER_COLOR);
 	const Vector lightColor(LIGHT_COLOR);
 	Vector ambientColor(AMBIENT_COLOR);
-	const Vector ambientPosition(AMBIENT_POSITION);
+	Vector ambientPosition(AMBIENT_POSITION);
+
+	Button menu(100, 20, "SHOW MENU");
+	menu.setFillRacktengelColor(155, 40, 50);
+	menu.setFillTextColor(20, 255, 155);
+	menu.setPosition(220, 10);
+	menu.SetTxtPos(100, 100);
 
 	Button movement(100, 20, "MOVE OFF");
 	movement.setFillRacktengelColor(155, 40, 50);
@@ -70,6 +80,12 @@ void RayCasting()
 	smooth.setFillTextColor(20, 255, 155);
 	smooth.setPosition(10, 45);
 	smooth.SetTxtPos(100, 100);
+
+	Button glossy(100, 20, "GLOSSY OFF");
+	glossy.setFillRacktengelColor(155, 40, 50);
+	glossy.setFillTextColor(20, 255, 155);
+	glossy.setPosition(500, 10);
+	glossy.SetTxtPos(100, 100);
 
 	Button ambient(100, 20, "AMBIENT OFF");
 	ambient.setFillRacktengelColor(155, 40, 50);
@@ -127,7 +143,6 @@ void RayCasting()
 	SoundBuf.loadFromFile("MORGENSHTERN - Пососи.ogg");// тут загружаем в буфер что то
 	Sound sound;
 	sound.setBuffer(SoundBuf);
-	sound.play();
 
 	sf::Image Sphere;
 	sf::Color matColor;
@@ -150,7 +165,7 @@ void RayCasting()
 
 			if (Keyboard::isKeyPressed)
 			{
-
+				break;
 				switch (event.key.code)
 				{
 				case Keyboard::Left:
@@ -182,157 +197,236 @@ void RayCasting()
 
 		}
 
-		if (movement.navediaMouse(event, mousePositon))
+		if (!NEED_MENU)
 		{
-			movement.changeFillRacktengelColor(255, 255, 0);
-			if (Mouse::isButtonPressed(Mouse::Left))
+			if (menu.navediaMouse(event, mousePositon))
 			{
-				end = std::chrono::high_resolution_clock::now();
-				if (((std::chrono::duration_cast<std::chrono::milliseconds>(end - last_click).count()) < 70));
-				else if (MOVE)
+				menu.changeFillRacktengelColor(255, 255, 0);
+				if (Mouse::isButtonPressed(Mouse::Left))
 				{
-					MOVE = false;
-					movement.changeTxt("MOVE ON");
-					sound.pause();
-				}
-				else
-				{
-					MOVE = true;
-					movement.changeTxt("MOVE OFF");
-					sound.play();
+					end = std::chrono::high_resolution_clock::now();
+					if (((std::chrono::duration_cast<std::chrono::milliseconds>(end - last_click).count()) < 70)) {}
+					else
+					{
+						NEED_MENU = true;
+						menu.changeTxt("HIDE MENU");
+					}
+
+					
+
+
+					last_click = std::chrono::high_resolution_clock::now();
 				}
 
-				last_click = std::chrono::high_resolution_clock::now();
 			}
-
+			else
+				menu.changeFillRacktengelColor(menu.GetColor());
 		}
 		else
-			movement.changeFillRacktengelColor(movement.GetColor());
-
-		if (smooth.navediaMouse(event, mousePositon))
 		{
-			smooth.changeFillRacktengelColor(255, 255, 0);
-			if (Mouse::isButtonPressed(Mouse::Left))
+			if (movement.navediaMouse(event, mousePositon))
 			{
-				end = std::chrono::high_resolution_clock::now();
-				if (((std::chrono::duration_cast<std::chrono::milliseconds>(end - last_click).count()) < 70));
-				else if (SMOOTH == 10)
+				movement.changeFillRacktengelColor(255, 255, 0);
+				if (Mouse::isButtonPressed(Mouse::Left))
 				{
-					SMOOTH = 0;
-					smooth.changeTxt("SMOOTH ON");
-				}
-				else
-				{
-					SMOOTH = 10;
-					smooth.changeTxt("SMOOTH OFF");
+					end = std::chrono::high_resolution_clock::now();
+					if (((std::chrono::duration_cast<std::chrono::milliseconds>(end - last_click).count()) < 70));
+					else if (MOVE)
+					{
+						MOVE = false;
+						movement.changeTxt("MOVE ON");
+						sound.pause();
+					}
+					else
+					{
+						MOVE = true;
+						movement.changeTxt("MOVE OFF");
+						if (NEED_MORGEN)
+							sound.play();
+					}
+
+					last_click = std::chrono::high_resolution_clock::now();
 				}
 
-				last_click = std::chrono::high_resolution_clock::now();
 			}
+			else
+				movement.changeFillRacktengelColor(movement.GetColor());
 
-		}
-		else
-			smooth.changeFillRacktengelColor(smooth.GetColor());
-
-		if (ambient.navediaMouse(event, mousePositon))
-		{
-			ambient.changeFillRacktengelColor(255, 255, 0);
-			if (Mouse::isButtonPressed(Mouse::Left))
+			if (smooth.navediaMouse(event, mousePositon))
 			{
-				end = std::chrono::high_resolution_clock::now();
-				if (((std::chrono::duration_cast<std::chrono::milliseconds>(end - last_click).count()) < 70));
-				else if ((ambientColor.x_ == 0) && (ambientColor.y_ == 0) && (ambientColor.y_ == 0))
+				smooth.changeFillRacktengelColor(255, 255, 0);
+				if (Mouse::isButtonPressed(Mouse::Left))
 				{
-					ambientColor.set(AMBIENT_COLOR);
-					ambient.changeTxt("AMBIENT OFF");
-				}
-				else
-				{
-					ambientColor.set(0, 0, 0);
-					ambient.changeTxt("AMBIENT ON");
+					end = std::chrono::high_resolution_clock::now();
+					if (((std::chrono::duration_cast<std::chrono::milliseconds>(end - last_click).count()) < 70));
+					else if (SMOOTH == 10)
+					{
+						SMOOTH = 0;
+						smooth.changeTxt("SMOOTH ON");
+					}
+					else
+					{
+						SMOOTH = 10;
+						smooth.changeTxt("SMOOTH OFF");
+					}
+
+					last_click = std::chrono::high_resolution_clock::now();
 				}
 
-				last_click = std::chrono::high_resolution_clock::now();
 			}
+			else
+				smooth.changeFillRacktengelColor(smooth.GetColor());
 
-		}
-		else
-			ambient.changeFillRacktengelColor(ambient.GetColor());
-
-		if (inc_speed.navediaMouse(event, mousePositon))
-		{
-			inc_speed.changeFillRacktengelColor(255, 255, 0);
-			if (Mouse::isButtonPressed(Mouse::Left))
+			if (ambient.navediaMouse(event, mousePositon))
 			{
-				end = std::chrono::high_resolution_clock::now();
-				if (((std::chrono::duration_cast<std::chrono::milliseconds>(end - last_click).count()) < 70));
-				else if (AUTO_SPEED < 20)
+				ambient.changeFillRacktengelColor(255, 255, 0);
+				if (Mouse::isButtonPressed(Mouse::Left))
 				{
-					AUTO_SPEED++;
-					if (AUTO_SPEED == 20) inc_speed.setFillTextColor(255, 0, 0);
-					red_speed.setFillTextColor(20, 255, 0);
-				}
-				else
-				{
-					inc_speed.setFillTextColor(255, 0, 0);
+					end = std::chrono::high_resolution_clock::now();
+					if (((std::chrono::duration_cast<std::chrono::milliseconds>(end - last_click).count()) < 70));
+					else if ((ambientColor.x_ == 0) && (ambientColor.y_ == 0) && (ambientColor.y_ == 0))
+					{
+						ambientColor.set(AMBIENT_COLOR);
+						ambient.changeTxt("AMBIENT OFF");
+					}
+					else
+					{
+						ambientColor.set(0, 0, 0);
+						ambient.changeTxt("AMBIENT ON");
+					}
+
+					last_click = std::chrono::high_resolution_clock::now();
 				}
 
-				last_click = std::chrono::high_resolution_clock::now();
 			}
+			else
+				ambient.changeFillRacktengelColor(ambient.GetColor());
 
-		}
-		else
-			inc_speed.changeFillRacktengelColor(inc_speed.GetColor());
-
-		if (red_speed.navediaMouse(event, mousePositon))
-		{
-			red_speed.changeFillRacktengelColor(255, 255, 0);
-			if (Mouse::isButtonPressed(Mouse::Left))
+			if (inc_speed.navediaMouse(event, mousePositon))
 			{
-				end = std::chrono::high_resolution_clock::now();
-				if (((std::chrono::duration_cast<std::chrono::milliseconds>(end - last_click).count()) < 70));
-				else if (AUTO_SPEED > 0)
+				inc_speed.changeFillRacktengelColor(255, 255, 0);
+				if (Mouse::isButtonPressed(Mouse::Left))
 				{
-					AUTO_SPEED--;
-					if (AUTO_SPEED == 0) red_speed.setFillTextColor(255, 0, 0);
-					inc_speed.setFillTextColor(20, 255, 0);
-				}
-				else
-				{
-					red_speed.setFillTextColor(255, 0, 0);
+					end = std::chrono::high_resolution_clock::now();
+					if (((std::chrono::duration_cast<std::chrono::milliseconds>(end - last_click).count()) < 70));
+					else if (AUTO_SPEED < 20)
+					{
+						AUTO_SPEED++;
+						if (AUTO_SPEED == 20) inc_speed.setFillTextColor(255, 0, 0);
+						red_speed.setFillTextColor(20, 255, 0);
+					}
+					else
+					{
+						inc_speed.setFillTextColor(255, 0, 0);
+					}
+
+					last_click = std::chrono::high_resolution_clock::now();
 				}
 
-				last_click = std::chrono::high_resolution_clock::now();
 			}
+			else
+				inc_speed.changeFillRacktengelColor(inc_speed.GetColor());
 
-		}
-		else
-			red_speed.changeFillRacktengelColor(red_speed.GetColor());
-
-		if (morgen.navediaMouse(event, mousePositon))
-		{
-			morgen.changeFillRacktengelColor(255, 255, 0);
-			if (Mouse::isButtonPressed(Mouse::Left))
+			if (red_speed.navediaMouse(event, mousePositon))
 			{
-				end = std::chrono::high_resolution_clock::now();
-				if (((std::chrono::duration_cast<std::chrono::milliseconds>(end - last_click).count()) < 70));
-				else if (NEED_MORGEN == true)
+				red_speed.changeFillRacktengelColor(255, 255, 0);
+				if (Mouse::isButtonPressed(Mouse::Left))
 				{
-					NEED_MORGEN = false;
-					morgen.changeTxt("MORGEN OFF");
-				}
-				else
-				{
-					NEED_MORGEN = true;
-					morgen.changeTxt("MORGEN ON");
+					end = std::chrono::high_resolution_clock::now();
+					if (((std::chrono::duration_cast<std::chrono::milliseconds>(end - last_click).count()) < 70));
+					else if (AUTO_SPEED > 0)
+					{
+						AUTO_SPEED--;
+						if (AUTO_SPEED == 0) red_speed.setFillTextColor(255, 0, 0);
+						inc_speed.setFillTextColor(20, 255, 0);
+					}
+					else
+					{
+						red_speed.setFillTextColor(255, 0, 0);
+					}
+
+					last_click = std::chrono::high_resolution_clock::now();
 				}
 
-				last_click = std::chrono::high_resolution_clock::now();
 			}
+			else
+				red_speed.changeFillRacktengelColor(red_speed.GetColor());
 
+			if (morgen.navediaMouse(event, mousePositon))
+			{
+				morgen.changeFillRacktengelColor(255, 255, 0);
+				if (Mouse::isButtonPressed(Mouse::Left))
+				{
+					end = std::chrono::high_resolution_clock::now();
+					if (((std::chrono::duration_cast<std::chrono::milliseconds>(end - last_click).count()) < 70));
+					else if (NEED_MORGEN == true)
+					{
+						NEED_MORGEN = false;
+						sound.pause();
+						morgen.changeTxt("MORGEN OFF");
+					}
+					else
+					{
+						NEED_MORGEN = true;
+						if (MOVE)
+							sound.play();
+						morgen.changeTxt("MORGEN ON");
+					}
+
+					last_click = std::chrono::high_resolution_clock::now();
+				}
+
+			}
+			else
+				morgen.changeFillRacktengelColor(morgen.GetColor());
+
+			if (glossy.navediaMouse(event, mousePositon))
+			{
+				glossy.changeFillRacktengelColor(255, 255, 0);
+				if (Mouse::isButtonPressed(Mouse::Left))
+				{
+					end = std::chrono::high_resolution_clock::now();
+					if (((std::chrono::duration_cast<std::chrono::milliseconds>(end - last_click).count()) < 70));
+					else if (GLOSSY == true)
+					{
+						GLOSSY = false;
+						glossy.changeTxt("GLOSSY OFF");
+					}
+					else
+					{
+						GLOSSY = true;
+						glossy.changeTxt("GLOSSY ON");
+					}
+
+					last_click = std::chrono::high_resolution_clock::now();
+				}
+
+			}
+			else
+				glossy.changeFillRacktengelColor(glossy.GetColor());
+
+			if (menu.navediaMouse(event, mousePositon))
+			{
+				menu.changeFillRacktengelColor(255, 255, 0);
+				if (Mouse::isButtonPressed(Mouse::Left))
+				{
+					end = std::chrono::high_resolution_clock::now();
+					if (((std::chrono::duration_cast<std::chrono::milliseconds>(end - last_click).count()) < 70)) {}
+					else
+					{
+						NEED_MENU = false;
+						menu.changeTxt("SHOW MENU");
+					}
+
+
+					last_click = std::chrono::high_resolution_clock::now();
+				}
+
+			}
+			else
+				menu.changeFillRacktengelColor(menu.GetColor());
 		}
-		else
-			morgen.changeFillRacktengelColor(red_speed.GetColor());
+		
 
 
 
@@ -358,8 +452,15 @@ void RayCasting()
 					matColor = Sphere.getPixel(x, y);
 					materialColor = Vector(matColor.r / 256.f, matColor.g / 256.f, matColor.b / 256.f);
 				}
+				else
+				{
+					materialColor = Vector(MATER_COLOR);
+				}
 
 				lightPosition = Vector(SP_RAD * cos(light_move), SP_RAD * pow(cos(light_move), 2), SP_RAD * sin(light_move));
+				
+				//ambientPosition = Vector(randomgen(-2 * SP_RAD, 2 * SP_RAD), randomgen(-1 * SP_RAD, 1 * SP_RAD), randomgen(1 * SP_RAD, 2 * SP_RAD));
+				
 				color = get_true_color(x - SC_Width / 2, y - SC_Height / 2, ALL_VECTORS,
 									   lightPosition, SP_RAD, SMOOTH, ambientPosition
 										);
@@ -370,21 +471,26 @@ void RayCasting()
 		texture.loadFromImage(buffer);
 		window.draw(sprite);
 
-		movement.draw(window);
-		smooth.draw(window);
-		ambient.draw(window);
-		inc_speed.draw(window);
-		red_speed.draw(window);
-		morgen.draw(window);
+		if (!NEED_MENU)
+			menu.draw(window);
+		else
+		{
+			movement.draw(window);
+			smooth.draw(window);
+			ambient.draw(window);
+			inc_speed.draw(window);
+			red_speed.draw(window);
+			morgen.draw(window);
+			glossy.draw(window);
+			menu.draw(window);
+		}
 
 
 		window.display();
+
 		end = std::chrono::high_resolution_clock::now();
-
 		fps = (float)1e9 / (float)std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
-
 		const std::string title = "Raycasting (" + std::to_string((double)fps) + " fps)";
-
 		window.setTitle(title);
 
 		if (MOVE)
@@ -392,11 +498,10 @@ void RayCasting()
 	}
 }
 
-int randomgen(int min, int max)
+inline int randomgen(int min, int max)
 {
     return rand() % (max - min + 1) + min;
 }
-
 
 Vector get_true_color(int x, int y, const Vector viewPos, const Vector materialColor, const Vector lightColor, const Vector ambientColor,
 						const Vector lightPosition, int R, int smooth, const Vector ambientPosition)
@@ -467,9 +572,8 @@ Vector collision(const Vector& p, double r, int smooth)
 
 	static bool initialize = false;
 
-	if (smooth == 10)
-		return Vector(0, 0, 0);
-	else	
+	if (smooth == 10) {}
+	else if (smooth == 0)
 	{
 		#define GET_RAND() randomgen( -1, 1 )
 		#define GET_SMOOTH() randomgen(-smooth, smooth)
@@ -479,19 +583,29 @@ Vector collision(const Vector& p, double r, int smooth)
 		if (!initialize)
 		{
 			for (int y = 0; y < sz; y++) for (int x = 0; x < sz; x++)
-				env[y][x] = Vector(RAND(), RAND(), RAND());
+				env[y][x] = Vector(GET_RAND());
 
 			initialize = true;
 		}
 
 
-	#undef GET_RAND()
-	#undef GET_SMOOTH()
-	#undef RAND()
-	#undef RAND_SMOOTH()
-	}
-		
-	bump += env[(unsigned)(int)(p.y_ + r) % sz][(unsigned)(int)(p.x_ + r) % sz];
+		#undef GET_RAND()
+		#undef GET_SMOOTH()
+		#undef RAND()
+		#undef RAND_SMOOTH()
 
-	return bump;
+		bump += env[(unsigned)(int)(p.y_ + r) % sz][(unsigned)(int)(p.x_ + r) % sz];
+	}
+	
+	if (GLOSSY)
+	{
+		bump += p * (sin(pow(p.z_, 2) / 500) / 2 + 0.25) / 70.0;
+	}
+	
+	// distortion
+	//bump += p * ((sin(p.x_ / 4) + cos(p.y_ / 4)) / 4 + 1.5) / 10.0;
+	
+	//bump += p * ((cos (p.x_/4) + sin (p.y_/4)) / 2 + 1.0) / 30.0;
+
+	return  bump;
 }
